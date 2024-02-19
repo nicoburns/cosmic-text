@@ -229,7 +229,8 @@ fn main() {
                         &mut swash_cache,
                         cosmic_text::Color::rgb(0xFF, 0xFF, 0xFF),
                         |x, y, w, h, color| {
-                            paint.set_color_rgba8(color.r(), color.g(), color.b(), color.a());
+                            // Note red and blue channel swapped
+                            paint.set_color_rgba8(color.b(), color.g(), color.r(), color.a());
                             pixmap.fill_rect(
                                 Rect::from_xywh(x as f32, y as f32, w as f32, h as f32)
                                     .unwrap(),
