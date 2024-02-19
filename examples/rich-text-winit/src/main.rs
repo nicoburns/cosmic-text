@@ -1,47 +1,29 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use cosmic_text::{
-    Action, Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Edit, Family, FontSystem, LineHeight, Scroll, Shaping, Style, SwashCache, Weight
+    Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Family, FontSystem, LineHeight, Scroll, Shaping, Style, SwashCache, Weight
 };
-use std::{collections::HashMap, env, fs, num::NonZeroU32, rc::Rc, slice};
+use std::{num::NonZeroU32, rc::Rc, slice};
 use tiny_skia::{Paint, PixmapMut, Rect, Transform};
 use winit::{
     event::{ElementState, Event, KeyEvent, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     keyboard::{Key, NamedKey},
-    window::{Window as WinitWindow, WindowBuilder},
+    window::{WindowBuilder},
 };
 
 fn main() {
     env_logger::init();
 
-    let path = if let Some(arg) = env::args().nth(1) {
-        arg
-    } else {
-        "../../sample/hello.txt".to_string()
-    };
-
     let mut font_system = FontSystem::new();
-
     let mut swash_cache = SwashCache::new();
 
     let mut buffer = Buffer::new_empty();
     let mut buffer = buffer.borrow_with(&mut font_system);
 
-    let mut attrs = Attrs::new()
-        .family(Family::Monospace)
-        .size(14.0)
-        .line_height(LineHeight::Proportional(1.2));
-    let text = match fs::read_to_string(&path) {
-        Ok(text) => text,
-        Err(err) => {
-            panic!("failed to load {:?}: {}", path, err);
-        }
-    };
-
     let event_loop = EventLoop::new().unwrap(); 
-    let mut window = Rc::new(WindowBuilder::new().build(&event_loop).unwrap());
-    let mut context = softbuffer::Context::new(window.clone()).unwrap();
+    let window = Rc::new(WindowBuilder::new().build(&event_loop).unwrap());
+    let context = softbuffer::Context::new(window.clone()).unwrap();
     let mut surface = softbuffer::Surface::new(&context, window.clone()).unwrap();
     let mut scroll = Scroll::default();
 
@@ -173,8 +155,6 @@ fn main() {
 
     set_text(&mut buffer, window.scale_factor() as f32);
 
-    
-
     event_loop
         .run(move |event, elwt| {
             elwt.set_control_flow(ControlFlow::Wait);
@@ -186,7 +166,7 @@ fn main() {
                     window.request_redraw();
                 }
                 Event::WindowEvent {
-                    window_id,
+                    window_id: _,
                     event: WindowEvent::RedrawRequested,
                 } => {
                     let (width, height) = {
@@ -224,18 +204,18 @@ fn main() {
 
                     let mut paint = Paint::default();
                     paint.anti_alias = false;
-                    let transform = Transform::identity();
                     buffer.draw(
                         &mut swash_cache,
                         cosmic_text::Color::rgb(0xFF, 0xFF, 0xFF),
                         |x, y, w, h, color| {
-                            // Note red and blue channel swapped
+                            // Note: due to softbuffer and tiny_skia having incompatible internal color representations we swap
+                            // the red and blue channels here
                             paint.set_color_rgba8(color.b(), color.g(), color.r(), color.a());
                             pixmap.fill_rect(
                                 Rect::from_xywh(x as f32, y as f32, w as f32, h as f32)
                                     .unwrap(),
                                 &paint,
-                                transform,
+                                Transform::identity(),
                                 None,
                             );
                         },
