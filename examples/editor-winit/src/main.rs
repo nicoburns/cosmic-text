@@ -50,8 +50,7 @@ fn main() {
     .unwrap();
     let mut editor = editor.borrow_with(&mut font_system);
 
-    let attrs = Attrs::new()
-        .family(Family::Monospace);
+    let attrs = Attrs::new().family(Family::Monospace);
 
     match editor.load_text(&path, attrs) {
         Ok(()) => (),
@@ -64,6 +63,7 @@ fn main() {
     let mut mouse_x = 0.0;
     let mut mouse_y = 0.0;
     let mut mouse_left = ElementState::Released;
+    let mut unapplied_scroll_delta = 0.0;
 
     event_loop
         .run(move |event, elwt| {
@@ -124,6 +124,7 @@ fn main() {
 
                     let mut paint = Paint::default();
                     paint.anti_alias = false;
+                    editor.shape_as_needed(true);
                     editor.draw(&mut swash_cache, |x, y, w, h, color| {
                         // Note: due to softbuffer and tiny_skia having incompatible internal color representations we swap
                         // the red and blue channels here
@@ -136,7 +137,33 @@ fn main() {
                         );
                     });
 
-                    // TODO: Draw scrollbar
+                    // Draw scrollbar
+                    {
+                        let mut start_line_opt = None;
+                        let mut end_line = 0;
+                        editor.with_buffer(|buffer| {
+                            for run in buffer.layout_runs() {
+                                end_line = run.line_i;
+                                if start_line_opt.is_none() {
+                                    start_line_opt = Some(end_line);
+                                }
+                            }
+                        });
+
+                        let start_line = start_line_opt.unwrap_or(end_line);
+                        let lines = editor.with_buffer(|buffer| buffer.lines.len());
+                        let start_y = (start_line * height as usize) / lines;
+                        let end_y = (end_line * height as usize) / lines;
+                        paint.set_color_rgba8(0xFF, 0xFF, 0xFF, 0x40);
+                        if end_y > start_y {
+                            pixmap.fill_rect(
+                                Rect::from_xywh(width as f32 - line_x * 2.0, start_y as f32, line_x * 2.0, (end_y - start_y) as f32).unwrap(),
+                                &paint,
+                                Transform::identity(),
+                                None,
+                            );
+                        }
+                    }
 
                     surface_buffer.present().unwrap();
                 }
@@ -265,17 +292,20 @@ fn main() {
                             phase,
                         },
                 } => {
-                    dbg!(delta);
-                    match delta {
-                        MouseScrollDelta::LineDelta(x, y) => {
-                            editor.action(Action::Scroll { lines: y as i32 })
-                        }
+                    let line_delta = match delta {
+                        MouseScrollDelta::LineDelta(x, y) => y as i32,
                         MouseScrollDelta::PixelDelta(PhysicalPosition { x, y }) => {
-                            editor.action(Action::Scroll {
-                                lines: (y / 20.0).floor() as i32,
-                            })
+                            unapplied_scroll_delta += y;
+                            let line_delta = (unapplied_scroll_delta / 20.0).floor();
+                            unapplied_scroll_delta -= line_delta * 20.0;
+                            line_delta as i32
                         }
+                    };
+                    if line_delta != 0 {
+                        editor.action(Action::Scroll { lines: -line_delta });
                     }
+                    window.request_redraw();
+
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
