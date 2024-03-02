@@ -2,7 +2,7 @@
 
 use cosmic_text::{
     Action, Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Edit, Family, FontSystem,
-    LineHeight, Motion, Scroll, Shaping, Style, SwashCache, SyntaxEditor, SyntaxSystem, Weight,
+    Metrics, Motion, Scroll, Shaping, Style, SwashCache, SyntaxEditor, SyntaxSystem, Weight,
 };
 use std::{env, num::NonZeroU32, rc::Rc, slice};
 use tiny_skia::{Paint, PixmapMut, Rect, Transform};
@@ -27,13 +27,15 @@ fn main() {
     let syntax_system = SyntaxSystem::new();
     let mut swash_cache = SwashCache::new();
 
+    let display_scale = window.scale_factor() as f32;
+
     let font_sizes = [
-        10.0, // Metrics::new(10.0, 14.0).scale(display_scale), // Caption
-        14.0, // Metrics::new(14.0, 20.0).scale(display_scale), // Body
-        20.0, // Metrics::new(20.0, 28.0).scale(display_scale), // Title 4
-        24.0, // Metrics::new(24.0, 32.0).scale(display_scale), // Title 3
-        28.0, // Metrics::new(28.0, 36.0).scale(display_scale), // Title 2
-        32.0, // Metrics::new(32.0, 44.0).scale(display_scale), // Title 1
+        Metrics::new(10.0, 14.0).scale(display_scale), // Caption
+        Metrics::new(14.0, 20.0).scale(display_scale), // Body
+        Metrics::new(20.0, 28.0).scale(display_scale), // Title 4
+        Metrics::new(24.0, 32.0).scale(display_scale), // Title 3
+        Metrics::new(28.0, 36.0).scale(display_scale), // Title 2
+        Metrics::new(32.0, 44.0).scale(display_scale), // Title 1
     ];
     let font_size_default = 1; // Body
     let mut font_size_i = font_size_default;
@@ -41,7 +43,7 @@ fn main() {
     let line_x = 8.0 * (window.scale_factor() as f32);
 
     let mut editor = SyntaxEditor::new(
-        Buffer::new(&mut font_system),
+        Buffer::new(&mut font_system, font_sizes[font_size_i]),
         &syntax_system,
         "base16-eighties.dark",
     )
@@ -49,8 +51,6 @@ fn main() {
     let mut editor = editor.borrow_with(&mut font_system);
 
     let attrs = Attrs::new()
-        .size(font_sizes[font_size_i] * (window.scale_factor() as f32))
-        .line_height(LineHeight::Proportional(1.2))
         .family(Family::Monospace);
 
     match editor.load_text(&path, attrs) {

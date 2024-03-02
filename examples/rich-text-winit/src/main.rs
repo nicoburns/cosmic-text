@@ -1,7 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use cosmic_text::{
-    Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Family, FontSystem, LineHeight, Scroll, Shaping, Style, SwashCache, Weight
+    Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Family, FontSystem, Metrics,
+    Scroll, Shaping, Style, SwashCache, Weight,
 };
 use std::{num::NonZeroU32, rc::Rc, slice};
 use tiny_skia::{Paint, PixmapMut, Rect, Transform};
@@ -9,7 +10,7 @@ use winit::{
     event::{ElementState, Event, KeyEvent, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     keyboard::{Key, NamedKey},
-    window::{WindowBuilder},
+    window::WindowBuilder,
 };
 
 fn main() {
@@ -18,23 +19,18 @@ fn main() {
     let mut font_system = FontSystem::new();
     let mut swash_cache = SwashCache::new();
 
-    let mut buffer = Buffer::new_empty();
-    let mut buffer = buffer.borrow_with(&mut font_system);
-
-    let event_loop = EventLoop::new().unwrap(); 
+    let event_loop = EventLoop::new().unwrap();
     let window = Rc::new(WindowBuilder::new().build(&event_loop).unwrap());
     let context = softbuffer::Context::new(window.clone()).unwrap();
     let mut surface = softbuffer::Surface::new(&context, window.clone()).unwrap();
     let mut scroll = Scroll::default();
 
-    // buffer.set_text(&text, attrs.scale(window.scale_factor() as f32), Shaping::Advanced);
+    let metrics = Metrics::new(32.0, 44.0).scale(window.scale_factor() as f32);
+    let mut buffer = Buffer::new_empty(metrics);
+    let mut buffer = buffer.borrow_with(&mut font_system);
 
     fn set_text<'a>(buffer: &mut BorrowedWithFontSystem<'a, Buffer>, scale_factor: f32) {
-
-        let attrs = Attrs::new()
-            .size(32.0)
-            .line_height(LineHeight::Absolute(44.0))
-            .scale(scale_factor);
+        let attrs = Attrs::new();
         let serif_attrs = attrs.family(Family::Serif);
         let mono_attrs = attrs.family(Family::Monospace);
         let comic_attrs = attrs.family(Family::Name("Comic Neue"));
@@ -89,55 +85,6 @@ fn main() {
             ("B", attrs.color(Color::rgb(0x00, 0x00, 0xFF))),
             ("O", attrs.color(Color::rgb(0x4B, 0x00, 0x82))),
             ("W ", attrs.color(Color::rgb(0x94, 0x00, 0xD3))),
-            (
-                "Red ",
-                attrs
-                    .color(Color::rgb(0xFF, 0x00, 0x00))
-                    .size(attrs.font_size * 1.9)
-                    .line_height(LineHeight::Proportional(0.9)),
-            ),
-            (
-                "Orange ",
-                attrs
-                    .color(Color::rgb(0xFF, 0x7F, 0x00))
-                    .size(attrs.font_size * 1.6)
-                    .line_height(LineHeight::Proportional(1.0)),
-            ),
-            (
-                "Yellow ",
-                attrs
-                    .color(Color::rgb(0xFF, 0xFF, 0x00))
-                    .size(attrs.font_size * 1.3)
-                    .line_height(LineHeight::Proportional(1.1)),
-            ),
-            (
-                "Green ",
-                attrs
-                    .color(Color::rgb(0x00, 0xFF, 0x00))
-                    .size(attrs.font_size * 1.0)
-                    .line_height(LineHeight::Proportional(1.2)),
-            ),
-            (
-                "Blue ",
-                attrs
-                    .color(Color::rgb(0x00, 0x00, 0xFF))
-                    .size(attrs.font_size * 0.8)
-                    .line_height(LineHeight::Proportional(1.3)),
-            ),
-            (
-                "Indigo ",
-                attrs
-                    .color(Color::rgb(0x4B, 0x00, 0x82))
-                    .size(attrs.font_size * 0.6)
-                    .line_height(LineHeight::Proportional(1.4)),
-            ),
-            (
-                "Violet ",
-                attrs
-                    .color(Color::rgb(0x94, 0x00, 0xD3))
-                    .size(attrs.font_size * 0.4)
-                    .line_height(LineHeight::Proportional(1.5)),
-            ),
             ("U", attrs.color(Color::rgb(0x94, 0x00, 0xD3))),
             ("N", attrs.color(Color::rgb(0x4B, 0x00, 0x82))),
             ("I", attrs.color(Color::rgb(0x00, 0x00, 0xFF))),
@@ -160,7 +107,10 @@ fn main() {
             elwt.set_control_flow(ControlFlow::Wait);
 
             match event {
-                Event::WindowEvent { window_id, event: WindowEvent::ScaleFactorChanged { scale_factor, .. } } => {
+                Event::WindowEvent {
+                    window_id,
+                    event: WindowEvent::ScaleFactorChanged { scale_factor, .. },
+                } => {
                     set_text(&mut buffer, scale_factor as f32);
                     log::info!("Updated scale factor for {window_id:?}");
                     window.request_redraw();
@@ -173,7 +123,7 @@ fn main() {
                         let size = window.inner_size();
                         (size.width, size.height)
                     };
-                    
+
                     surface
                         .resize(
                             NonZeroU32::new(width).unwrap(),
@@ -212,8 +162,7 @@ fn main() {
                             // the red and blue channels here
                             paint.set_color_rgba8(color.b(), color.g(), color.r(), color.a());
                             pixmap.fill_rect(
-                                Rect::from_xywh(x as f32, y as f32, w as f32, h as f32)
-                                    .unwrap(),
+                                Rect::from_xywh(x as f32, y as f32, w as f32, h as f32).unwrap(),
                                 &paint,
                                 Transform::identity(),
                                 None,
