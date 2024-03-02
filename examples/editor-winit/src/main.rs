@@ -281,11 +281,11 @@ fn main() {
                 } => {
                     if button == MouseButton::Left {
                         if state == ElementState::Released && mouse_left == ElementState::Pressed {
-                            println!("CLICK ({mouse_x}) ({mouse_y})");
                             editor.action(Action::Click {
                                 x: mouse_x /*- line_x*/ as i32,
                                 y: mouse_y as i32,
                             });
+                            window.request_redraw();
                         }
                         mouse_left = state;
                     }
