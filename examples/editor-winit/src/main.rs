@@ -157,7 +157,13 @@ fn main() {
                         paint.set_color_rgba8(0xFF, 0xFF, 0xFF, 0x40);
                         if end_y > start_y {
                             pixmap.fill_rect(
-                                Rect::from_xywh(width as f32 - line_x * 2.0, start_y as f32, line_x * 2.0, (end_y - start_y) as f32).unwrap(),
+                                Rect::from_xywh(
+                                    width as f32 - line_x * 2.0,
+                                    start_y as f32,
+                                    line_x * 2.0,
+                                    (end_y - start_y) as f32,
+                                )
+                                .unwrap(),
                                 &paint,
                                 Transform::identity(),
                                 None,
@@ -312,7 +318,6 @@ fn main() {
                         editor.action(Action::Scroll { lines: -line_delta });
                     }
                     window.request_redraw();
-
                 }
                 Event::WindowEvent {
                     event: WindowEvent::CloseRequested,
