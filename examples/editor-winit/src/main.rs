@@ -215,9 +215,16 @@ fn main() {
                             Key::Named(NamedKey::Enter) => editor.action(Action::Enter),
                             Key::Named(NamedKey::Backspace) => editor.action(Action::Backspace),
                             Key::Named(NamedKey::Delete) => editor.action(Action::Delete),
-                            Key::Character(c) => {
+                            Key::Named(key) => {
+                                if let Some(text) = key.to_text() {
+                                    for c in text.chars() {
+                                        editor.action(Action::Insert(c));
+                                    }
+                                }
+                            }
+                            Key::Character(text) => {
                                 if ctrl_pressed {
-                                    match &*c {
+                                    match &*text {
                                         "0" => {
                                             font_size_i = font_size_default;
                                             //editor
@@ -242,7 +249,7 @@ fn main() {
                                         _ => {}
                                     }
                                 } else {
-                                    for c in c.chars() {
+                                    for c in text.chars() {
                                         editor.action(Action::Insert(c));
                                     }
                                 }
