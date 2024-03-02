@@ -273,8 +273,27 @@ fn main() {
                         },
                     window_id: _,
                 } => {
+                    // Update saved mouse position for use when handling click events
                     mouse_x = position.x;
                     mouse_y = position.y;
+
+                    // Implement dragging
+                    if mouse_left.is_pressed() {
+                        // Execute Drag editor action (update selection)
+                        editor.action(Action::Drag {
+                            x: position.x as i32,
+                            y: position.y as i32,
+                        });
+
+                        // Scroll if cursor is near edge of window while dragging
+                        if mouse_y <= 5.0 {
+                            editor.action(Action::Scroll { lines: -1 });
+                        } else if mouse_y - 5.0 >= window.inner_size().height as f64 {
+                            editor.action(Action::Scroll { lines: 1 });
+                        }
+
+                        window.request_redraw();
+                    }
                 }
                 Event::WindowEvent {
                     event:
@@ -286,7 +305,7 @@ fn main() {
                     window_id: _,
                 } => {
                     if button == MouseButton::Left {
-                        if state == ElementState::Released && mouse_left == ElementState::Pressed {
+                        if state == ElementState::Pressed && mouse_left == ElementState::Released {
                             editor.action(Action::Click {
                                 x: mouse_x /*- line_x*/ as i32,
                                 y: mouse_y as i32,
@@ -294,6 +313,7 @@ fn main() {
                             window.request_redraw();
                         }
                         mouse_left = state;
+                        dbg!("clicked", mouse_left);
                     }
                 }
                 Event::WindowEvent {
