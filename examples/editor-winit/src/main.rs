@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use cosmic_text::{
-    Action, Attrs, BorrowedWithFontSystem, Buffer, CacheKeyFlags, Color, Edit, Family, FontSystem,
-    Metrics, Motion, Scroll, Shaping, Style, SwashCache, SyntaxEditor, SyntaxSystem, Weight,
+    Action, Attrs, Buffer, Edit, Family, FontSystem,
+    Metrics, Motion, SwashCache, SyntaxEditor, SyntaxSystem,
 };
 use std::{env, num::NonZeroU32, rc::Rc, slice};
 use tiny_skia::{Paint, PixmapMut, Rect, Transform};
