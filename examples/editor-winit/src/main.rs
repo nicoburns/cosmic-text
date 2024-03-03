@@ -276,7 +276,7 @@ fn main() {
                             }
                         }
                         WindowEvent::CursorMoved {
-                            device_id,
+                            device_id: _,
                             position,
                         } => {
                             // Update saved mouse position for use when handling click events
@@ -302,7 +302,7 @@ fn main() {
                             }
                         }
                         WindowEvent::MouseInput {
-                            device_id,
+                            device_id: _,
                             state,
                             button,
                         } => {
@@ -321,13 +321,13 @@ fn main() {
                             }
                         }
                         WindowEvent::MouseWheel {
-                            device_id,
+                            device_id: _,
                             delta,
-                            phase,
+                            phase: _,
                         } => {
                             let line_delta = match delta {
-                                MouseScrollDelta::LineDelta(x, y) => y as i32,
-                                MouseScrollDelta::PixelDelta(PhysicalPosition { x, y }) => {
+                                MouseScrollDelta::LineDelta(_x, y) => y as i32,
+                                MouseScrollDelta::PixelDelta(PhysicalPosition { x: _, y }) => {
                                     unapplied_scroll_delta += y;
                                     let line_delta = (unapplied_scroll_delta / 20.0).floor();
                                     unapplied_scroll_delta -= line_delta * 20.0;
