@@ -110,7 +110,8 @@ fn main() {
                             pixmap.fill(tiny_skia::Color::from_rgba8(0, 0, 0, 0xFF));
 
                             editor.with_buffer_mut(|buffer| {
-                                buffer.set_size(width as f32 - line_x * 2.0, height as f32)
+                                buffer
+                                    .set_size(width as f32 - line_x * display_scale, height as f32)
                             });
 
                             let mut paint = Paint::default();
@@ -150,9 +151,9 @@ fn main() {
                                 if end_y > start_y {
                                     pixmap.fill_rect(
                                         Rect::from_xywh(
-                                            width as f32 - line_x * 2.0,
+                                            width as f32 - line_x * display_scale,
                                             start_y as f32,
-                                            line_x * 2.0,
+                                            line_x * display_scale,
                                             (end_y - start_y) as f32,
                                         )
                                         .unwrap(),
