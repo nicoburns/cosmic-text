@@ -171,10 +171,7 @@ fn main() {
                         }
                         WindowEvent::KeyboardInput { event, .. } => {
                             let KeyEvent {
-                                logical_key,
-                                
-                                state,
-                                ..
+                                logical_key, state, ..
                             } = event;
 
                             if state.is_pressed() {
