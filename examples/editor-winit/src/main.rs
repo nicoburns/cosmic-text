@@ -226,23 +226,28 @@ fn main() {
                                             match &*text {
                                                 "0" => {
                                                     font_size_i = font_size_default;
-                                                    //editor
-                                                    //    .with_buffer_mut(|buffer| buffer.set_metrics(font_sizes[font_size_i]));
+                                                    editor.with_buffer_mut(|buffer| {
+                                                        buffer.set_metrics(font_sizes[font_size_i])
+                                                    });
                                                 }
                                                 "-" => {
                                                     if font_size_i > 0 {
                                                         font_size_i -= 1;
-                                                        // editor.with_buffer_mut(|buffer| {
-                                                        //     buffer.set_metrics(font_sizes[font_size_i])
-                                                        // });
+                                                        editor.with_buffer_mut(|buffer| {
+                                                            buffer.set_metrics(
+                                                                font_sizes[font_size_i],
+                                                            )
+                                                        });
                                                     }
                                                 }
                                                 "=" => {
                                                     if font_size_i + 1 < font_sizes.len() {
                                                         font_size_i += 1;
-                                                        // editor.with_buffer_mut(|buffer| {
-                                                        //     buffer.set_metrics(font_sizes[font_size_i])
-                                                        // });
+                                                        editor.with_buffer_mut(|buffer| {
+                                                            buffer.set_metrics(
+                                                                font_sizes[font_size_i],
+                                                            )
+                                                        });
                                                     }
                                                 }
                                                 _ => {}
