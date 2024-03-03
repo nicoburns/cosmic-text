@@ -91,8 +91,6 @@ fn main() {
                                 (size.width, size.height)
                             };
 
-                            dbg!(width, height);
-
                             surface
                                 .resize(
                                     NonZeroU32::new(width).unwrap(),
@@ -183,11 +181,10 @@ fn main() {
                         WindowEvent::KeyboardInput { event, .. } => {
                             let KeyEvent {
                                 logical_key,
-                                text,
+                                
                                 state,
                                 ..
                             } = event;
-                            println!("{:?} {:?} {:?}", &logical_key, text, state);
 
                             if state.is_pressed() {
                                 match logical_key {
@@ -317,7 +314,6 @@ fn main() {
                                     window.request_redraw();
                                 }
                                 mouse_left = state;
-                                dbg!("clicked", mouse_left);
                             }
                         }
                         WindowEvent::MouseWheel {
