@@ -113,16 +113,6 @@ fn main() {
                                 buffer.set_size(width as f32 - line_x * 2.0, height as f32)
                             });
 
-                            // // Set scroll to view scroll
-                            // buffer.set_scroll(scroll);
-                            // // Set size, will relayout and shape until scroll if changed
-                            // buffer.set_size(width as f32, height as f32);
-                            // // Shape until scroll, ensures scroll is clamped
-                            // //TODO: ability to prune with multiple views?
-                            // buffer.shape_until_scroll(true);
-                            // // Update scroll after buffer clamps it
-                            // scroll = buffer.scroll();
-
                             let mut paint = Paint::default();
                             paint.anti_alias = false;
                             editor.shape_as_needed(true);
