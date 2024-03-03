@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT OR Apache-2.0
 
 use cosmic_text::{
-    Action, Attrs, Buffer, Edit, Family, FontSystem,
-    Metrics, Motion, SwashCache, SyntaxEditor, SyntaxSystem,
+    Action, Attrs, Buffer, Edit, Family, FontSystem, Metrics, Motion, SwashCache, SyntaxEditor,
+    SyntaxSystem,
 };
 use std::{env, num::NonZeroU32, rc::Rc, slice};
 use tiny_skia::{Paint, PixmapMut, Rect, Transform};
@@ -27,15 +27,15 @@ fn main() {
     let syntax_system = SyntaxSystem::new();
     let mut swash_cache = SwashCache::new();
 
-    let display_scale = window.scale_factor() as f32;
+    let mut display_scale = window.scale_factor() as f32;
 
     let font_sizes = [
-        Metrics::new(10.0, 14.0).scale(display_scale), // Caption
-        Metrics::new(14.0, 20.0).scale(display_scale), // Body
-        Metrics::new(20.0, 28.0).scale(display_scale), // Title 4
-        Metrics::new(24.0, 32.0).scale(display_scale), // Title 3
-        Metrics::new(28.0, 36.0).scale(display_scale), // Title 2
-        Metrics::new(32.0, 44.0).scale(display_scale), // Title 1
+        Metrics::new(10.0, 14.0), // Caption
+        Metrics::new(14.0, 20.0), // Body
+        Metrics::new(20.0, 28.0), // Title 4
+        Metrics::new(24.0, 32.0), // Title 3
+        Metrics::new(28.0, 36.0), // Title 2
+        Metrics::new(32.0, 44.0), // Title 1
     ];
     let font_size_default = 1; // Body
     let mut font_size_i = font_size_default;
@@ -43,7 +43,10 @@ fn main() {
     let line_x = 8.0 * (window.scale_factor() as f32);
 
     let mut editor = SyntaxEditor::new(
-        Buffer::new(&mut font_system, font_sizes[font_size_i]),
+        Buffer::new(
+            &mut font_system,
+            font_sizes[font_size_i].scale(display_scale),
+        ),
         &syntax_system,
         "base16-eighties.dark",
     )
@@ -66,16 +69,20 @@ fn main() {
     let mut unapplied_scroll_delta = 0.0;
 
     event_loop
-        .run(move |event, elwt| {
+        .run(|event, elwt| {
             elwt.set_control_flow(ControlFlow::Wait);
 
             match event {
                 Event::WindowEvent { window_id, event } => {
                     match event {
                         WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                            // set_text(&mut buffer, scale_factor as f32);
-                            // TODO: Update scale factor for editor
                             log::info!("Updated scale factor for {window_id:?}");
+
+                            display_scale = scale_factor as f32;
+                            editor.with_buffer_mut(|buffer| {
+                                buffer.set_metrics(font_sizes[font_size_i].scale(display_scale))
+                            });
+
                             window.request_redraw();
                         }
                         WindowEvent::RedrawRequested => {
@@ -227,7 +234,10 @@ fn main() {
                                                 "0" => {
                                                     font_size_i = font_size_default;
                                                     editor.with_buffer_mut(|buffer| {
-                                                        buffer.set_metrics(font_sizes[font_size_i])
+                                                        buffer.set_metrics(
+                                                            font_sizes[font_size_i]
+                                                                .scale(display_scale),
+                                                        )
                                                     });
                                                 }
                                                 "-" => {
@@ -235,7 +245,8 @@ fn main() {
                                                         font_size_i -= 1;
                                                         editor.with_buffer_mut(|buffer| {
                                                             buffer.set_metrics(
-                                                                font_sizes[font_size_i],
+                                                                font_sizes[font_size_i]
+                                                                    .scale(display_scale),
                                                             )
                                                         });
                                                     }
@@ -245,7 +256,8 @@ fn main() {
                                                         font_size_i += 1;
                                                         editor.with_buffer_mut(|buffer| {
                                                             buffer.set_metrics(
-                                                                font_sizes[font_size_i],
+                                                                font_sizes[font_size_i]
+                                                                    .scale(display_scale),
                                                             )
                                                         });
                                                     }
